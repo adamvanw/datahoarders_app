@@ -14,10 +14,10 @@ func NewNotification(text string, time int32, color rl.Color) *Notification {
 }
 
 func (n *Notification) Draw() {
-	var opacity = 255
+	var opacity float32 = 255
 	if n.time < 1000 {
-		opacity = int(255 * (n.time / 1000))
+		opacity = float32(n.time) / 1000
 	}
-	rl.DrawText(n.text, 6, int32(rl.GetRenderHeight()-n.textSize-6), int32(n.textSize), rl.ColorAlpha(n.color, float32(opacity)))
+	rl.DrawText(n.text, 6, 6, int32(n.textSize), rl.ColorAlpha(n.color, opacity))
 	n.time -= int32(1000 * rl.GetFrameTime())
 }

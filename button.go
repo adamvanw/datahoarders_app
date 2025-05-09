@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -48,8 +49,15 @@ func (b Button) Draw() {
 
 func (b *Button) DetectActivation(mousePos rl.Vector2) {
 	if rl.CheckCollisionPointRec(mousePos, b.rect) {
-		b.active = true
+		if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+			b.active = true
+			fmt.Printf("%s\n", b.text)
+		} else {
+			b.active = false
+			b.insideColor = rl.ColorAlpha(b.insideColor, 0.7)
+		}
 	} else {
 		b.active = false
+		b.insideColor = rl.ColorAlpha(b.insideColor, 1)
 	}
 }
