@@ -7,8 +7,8 @@ import (
 	"log"
 )
 
-func InitializeCoachesPage(db *sql.DB) *ScrollTable {
-	rows, err := db.Query("SELECT c.coach_id, m.first_name, m.last_name, t.team_name FROM coaches c JOIN members m ON c.member_id = m.member_id JOIN teams t ON t.team_id = c.team_id ORDER BY m.first_name ASC")
+func InitializeCoachesPage(db *sql.DB) []ScrollTable {
+	rows, err := db.Query("SELECT c.coach_id, m.first_name, m.last_name, t.team_name FROM coaches c JOIN members m ON c.member_id = m.member_id JOIN teams t ON t.team_id = c.team_id ORDER BY m.last_name ASC")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,6 +26,7 @@ func InitializeCoachesPage(db *sql.DB) *ScrollTable {
 		}
 		elements = append(elements, Element{first_name + " " + last_name, id, team_name, element_type, false, rl.RayWhite})
 	}
+	rows.Close()
 	fmt.Printf("%d elements\n", len(elements))
-	return NewScrollTable(elements, rl.Rectangle{320, 100, 600, 550}, "Coaches")
+	return []ScrollTable{*NewScrollTable(elements, rl.Rectangle{320, 100, 600, 550}, "Coaches")}
 }

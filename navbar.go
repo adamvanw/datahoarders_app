@@ -15,10 +15,12 @@ func NewNavBar() *NavBar {
 	coachesLength := float32(80) + 20
 	teamsLength := float32(80) + 20
 	gamesLength := float32(80) + 20
+
 	var search = NewButton("Search", rl.Rectangle{0 + 1280/10 - playersLength/2, 720 - 40, playersLength, 40})
 	search.textSize = 20
 	search.outlineThickness = 0
 	search.insideColor = rl.DarkBlue
+	
 	var players = NewButton("Players", rl.Rectangle{1280/5 + (1280 / 10) - playersLength/2, 720 - 40, playersLength, 40})
 	players.textSize = 20
 	players.outlineThickness = 0
@@ -28,14 +30,17 @@ func NewNavBar() *NavBar {
 	coaches.textSize = 20
 	coaches.outlineThickness = 0
 	coaches.insideColor = rl.DarkBlue
+
 	var teams = NewButton("Teams", rl.Rectangle{3*1280/5 + (1280 / 10) - teamsLength/2, 720 - 40, teamsLength, 40})
 	teams.textSize = 20
 	teams.outlineThickness = 0
 	teams.insideColor = rl.DarkBlue
+
 	var games = NewButton("Games", rl.Rectangle{4*1280/5 + (1280 / 10) - gamesLength/2, 720 - 40, gamesLength, 40})
 	games.textSize = 20
 	games.outlineThickness = 0
 	games.insideColor = rl.DarkBlue
+
 	return &NavBar{[5]Button{search, players, coaches, teams, games}, rl.Rectangle{0, 720 - 40, 1280, 40}}
 }
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	_ "github.com/go-sql-driver/mysql"
 	"time"
@@ -18,6 +17,10 @@ const (
 	CoachesPage
 	GamesPage
 	SearchPage
+	GamePage
+	PlayerPage
+	TeamPage
+	CoachPage
 )
 
 func main() {
@@ -27,7 +30,8 @@ func main() {
 	var db *sql.DB
 	var err error
 	var navBar = NewNavBar()
-	var scrollTable ScrollTable
+	var scrollTables []ScrollTable
+	var texts []Text
 	// var timer int32 = 0
 	var notification Notification
 	resolutions := []rl.Vector2{rl.Vector2{1280, 720}, rl.Vector2{1920, 1080}, rl.Vector2{2560, 1440}, rl.Vector2{3840, 2160}}
@@ -36,10 +40,9 @@ func main() {
 	rl.SetTargetFPS(120)
 	camera := rl.NewCamera2D(rl.Vector2{0, 0}, rl.Vector2{0, 0}, 0, 1.0)
 
-	var renderSize = rl.Vector2{float32(rl.GetRenderWidth()), float32(rl.GetRenderHeight())}
+	var renderSize = rl.Vector2{float32(1280), float32(720)}
 
 	textBoxes, buttons = InitializeLoginPage(renderSize)
-	fmt.Printf("%d, %d", rl.GetRenderWidth(), rl.GetRenderHeight())
 	for !rl.WindowShouldClose() {
 		for i := 0; i < len(textBoxes); i++ {
 			if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
@@ -66,26 +69,31 @@ func main() {
 			case 0:
 				pageType = LandingPage
 				textBoxes, buttons = InitializeLandingPage()
-				scrollTable = ScrollTable{}
+				scrollTables = []ScrollTable{}
 			case 1:
 				pageType = PlayersPage
-				scrollTable = *InitializePlayersPage(db)
+				scrollTables = InitializePlayersPage(db)
 				buttons = []Button{}
 				textBoxes = []TextBox{}
 			case 2:
 				pageType = CoachesPage
-				scrollTable = *InitializeCoachesPage(db)
+				scrollTables = InitializeCoachesPage(db)
 				buttons = []Button{}
 				textBoxes = []TextBox{}
 			case 3:
 				pageType = TeamsPage
-				scrollTable = *InitializeTeamsPage(db)
+				scrollTables = InitializeTeamsPage(db)
 				buttons = []Button{}
 				textBoxes = []TextBox{}
 			case 4:
 				pageType = GamesPage
+				scrollTables = InitializeGamesPage(db)
+				buttons = []Button{}
+				textBoxes = []TextBox{}
 			}
 		}
+		var elementId = 0
+		var elementPage = 0
 		switch pageType {
 		case LoginPage:
 			buttons[0].DetectActivation(rl.GetMousePosition())
@@ -101,10 +109,11 @@ func main() {
 					db.SetMaxIdleConns(10)
 
 					// this just tests if we can query the database with our intended attributes.
-					_, err := db.Query("SELECT member_id, first_name, last_name, experience FROM members")
+					rows, err := db.Query("SELECT member_id, first_name, last_name, experience FROM members")
 					if err != nil {
 						notification = *NewNotification("Error: Incorrect credentials. Try again.", 5000, rl.Red)
 					}
+					rows.Close()
 
 					if notification.color != rl.Red {
 						pageType = LandingPage
@@ -121,15 +130,58 @@ func main() {
 				}
 			}
 		case SearchPage:
-			scrollTable.DetectInput()
+			elementId, elementPage = scrollTables[0].DetectInput(db)
 		case PlayersPage:
-			scrollTable.DetectInput()
+			elementId, elementPage = scrollTables[0].DetectInput(db)
+			if elementId != -1 {
+				pageType = PageType(elementPage)
+				scrollTables, texts = InitializePlayerPage(db, elementId)
+			}
 		case TeamsPage:
-			scrollTable.DetectInput()
+			elementId, elementPage = scrollTables[0].DetectInput(db)
+			if elementId != -1 {
+				pageType = PageType(elementPage)
+			}
 		case CoachesPage:
-			scrollTable.DetectInput()
+			elementId, elementPage = scrollTables[0].DetectInput(db)
+			if elementId != -1 {
+				pageType = PageType(elementPage)
+				scrollTables, texts = InitializeCoachPage(db, elementId)
+			}
 		case GamesPage:
-			scrollTable.DetectInput()
+			elementId, elementPage = scrollTables[0].DetectInput(db)
+			if elementId != -1 {
+				pageType = PageType(elementPage)
+				scrollTables, texts = InitializeGamePage(db, elementId)
+			}
+		case PlayerPage:
+			for i := 0; i < len(scrollTables); i++ {
+				elementId, elementPage = scrollTables[i].DetectInput(db)
+				if elementId != -1 || elementPage != -1 {
+					pageType = PageType(elementPage)
+					switch pageType {
+					case CoachPage:
+						scrollTables, texts = InitializeCoachPage(db, elementId)
+					}
+				}
+			}
+		case GamePage:
+			for i := 0; i < len(scrollTables); i++ {
+				elementId, elementPage = scrollTables[i].DetectInput(db)
+				if elementId != -1 || elementPage != -1 {
+					pageType = PageType(elementPage)
+					// it's only likely to be players, so InitializePlayerPage.
+					scrollTables, texts = InitializePlayerPage(db, elementId)
+				}
+			}
+		case CoachPage:
+			for i := 0; i < len(scrollTables); i++ {
+				elementId, elementPage = scrollTables[i].DetectInput(db)
+				if elementId != -1 || elementPage != -1 {
+					pageType = PageType(elementPage)
+					scrollTables, texts = InitializeTeamPage(db, elementId)
+				}
+			}
 		}
 		rl.BeginDrawing()
 		rl.BeginMode2D(camera)
@@ -142,8 +194,15 @@ func main() {
 		}
 		if pageType != LoginPage {
 			navBar.Draw()
+			if pageType != GamesPage && pageType != TeamsPage && pageType != PlayersPage && pageType != CoachesPage {
+				for i := 0; i < len(texts); i++ {
+					texts[i].Draw()
+				}
+			}
 		}
-		scrollTable.Render()
+		for i := 0; i < len(scrollTables); i++ {
+			scrollTables[i].Render()
+		}
 		notification.Draw()
 		rl.EndMode2D()
 		rl.EndDrawing()

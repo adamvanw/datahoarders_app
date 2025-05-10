@@ -41,6 +41,7 @@ func NewTextBox(rect rl.Rectangle, title string) TextBox {
 func (t *TextBox) DetectActivation(mousePos rl.Vector2) {
 	if rl.CheckCollisionPointRec(mousePos, t.rect) {
 		t.active = true
+		t.textPos = len(t.text)
 	} else {
 		t.active = false
 	}
@@ -95,5 +96,4 @@ func (t *TextBox) DetectInput() {
 		}
 		key = rl.GetCharPressed()
 	}
-
 }
