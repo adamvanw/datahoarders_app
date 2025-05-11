@@ -8,7 +8,7 @@ import (
 )
 
 func InitializeGamePage(db *sql.DB, gameId int) ([]ScrollTable, []Text) {
-	rows, err := db.Query("SELECT game_date, (SELECT team_name FROM teams WHERE teams.team_id = games.away_id), away_id, (SELECT team_name FROM teams WHERE teams.team_id = games.home_id), home_id, away_score, home_score, (SELECT team_name FROM teams WHERE teams.team_id = g_winner(game_id)) FROM games WHERE game_id = ?", gameId)
+	rows, err := db.Query("SELECT game_date, (SELECT team_name FROM teams WHERE teams.team_id = games.away_id), away_id, (SELECT team_name FROM teams WHERE teams.team_id = games.home_id), home_id, away_score, home_score, g_winner(game_id) FROM games WHERE game_id = ?", gameId)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,5 +61,5 @@ func InitializeGamePage(db *sql.DB, gameId int) ([]ScrollTable, []Text) {
 	homeScroll.fontSize = 20
 	rows.Close()
 
-	return []ScrollTable{*homeScroll, *awayScroll}, []Text{*gameName, *gameDate, *home, *away}
+	return []ScrollTable{*awayScroll, *homeScroll}, []Text{*gameName, *gameDate, *home, *away}
 }
