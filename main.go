@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	_ "github.com/go-sql-driver/mysql"
-	"strconv"
 	"time"
 )
 
@@ -277,7 +276,6 @@ func main() {
 			rl.DrawRectangleRec(rl.Rectangle{0, 0, 1280, 720 - 40}, rl.ColorAlpha(rl.RayWhite, opacity))
 		}
 		notification.Draw()
-		rl.DrawText(strconv.Itoa(int(pageType)), 0, 0, 20, rl.Green)
 		rl.EndMode2D()
 		rl.EndDrawing()
 	}
